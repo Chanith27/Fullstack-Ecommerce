@@ -13,6 +13,8 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import morgan from 'morgan'
 import helmet from 'helmet'
+import swaggerUi from 'swagger-ui-express'
+import swaggerSpec from './config/swagger.js'
 import userRouter from './route/user.route.js'
 import categoryRouter from './route/category.route.js'
 import uploadRouter from './route/upload.router.js'
@@ -36,11 +38,46 @@ app.use(helmet({
 
 const PORT = process.env.PORT || 8080 
 
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Health check endpoint
+ *     description: Returns server status and port information
+ *     tags: [Health Check]
+ *     responses:
+ *       200:
+ *         description: Server is running successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Server is running 8080"
+ */
 app.get("/",(request,response)=>{
     ///server to client
     response.json({
         message : "Server is running " + PORT
     })
+})
+
+// Swagger UI setup
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    explorer: true,
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Lanka Basket API Documentation',
+    swaggerOptions: {
+        persistAuthorization: true,
+    },
+}))
+
+// Swagger JSON endpoint
+app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json')
+    res.send(swaggerSpec)
 })
 
 app.use('/api/user',userRouter)
